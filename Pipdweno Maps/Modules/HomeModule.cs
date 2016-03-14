@@ -8,25 +8,38 @@ namespace Pipdweno_Maps.Modules
 {
     public class HomeModule : NancyModule
     {
+        private const string GOOGLE_MAPS_URL = @"https://maps.googleapis.com/maps/api/staticmap";
+        private const string GOOGLE_MAPS_KEY = @"AIzaSyAhMaZDXg2er-2xQacrvLUB496yl2O9OQ8";
+        private const string FILENAME = @"pipmap";
+        private const int LOCAL_MAP_ZOOM = 15;
+        private const int WORLD_MAP_ZOOM = 9;
         public HomeModule()
         {
-            Get["/"] = parameters => {
-                AquirePipMap(Request.Query.lat, Request.Query.lon, 15);
-                return Response.AsImage(@"pipmap.bmp"); ;
+            Get["/local"] = parameters => {
+                string imagePath = this.AquirePipMap(Request.Query.lat, Request.Query.lon, LOCAL_MAP_ZOOM);
+                return Response.AsImage(imagePath);
+            };
+
+            Get["/world"] = parameters => {
+                string imagePath = this.AquirePipMap(Request.Query.lat, Request.Query.lon, WORLD_MAP_ZOOM);
+                return Response.AsImage(imagePath);
             };
         }
 
-        private void AquirePipMap(string latitude, string longditude, int zoom)
+        private string AquirePipMap(string latitude, string longditude, int zoom)
         {
             string path = Directory.GetCurrentDirectory();
-            string originalImagePath = string.Format(@"{0}\pipmap.png", path);
-            string newImagePath = string.Format(@"{0}\pipmap.bmp", path);
+            string originalImagePath = string.Format(@"{0}\{1}.png", path, FILENAME);
+            string newImagePath = string.Format(@"{0}\{1}.bmp", path, FILENAME);
             string googleMapsUrl = string.Format(
-                "https://maps.googleapis.com/maps/api/staticmap?center={0},{1}&zoom={2}&size=300x215&maptype=satellite&key=AIzaSyAhMaZDXg2er-2xQacrvLUB496yl2O9OQ8",
+                "{0}?center={1},{2}&zoom={3}&size=300x215&maptype=hybrid&key={4}",
+                GOOGLE_MAPS_URL,
                 latitude,
                 longditude,
-                zoom);
+                zoom,
+                GOOGLE_MAPS_KEY);
 
+            // Download map
             using (WebClient client = new WebClient())
             {
                 client.DownloadFile(
@@ -34,6 +47,7 @@ namespace Pipdweno_Maps.Modules
                     originalImagePath);
             }
 
+            // Convert map to pipgreen bitmap
             Bitmap originalImage = new Bitmap(originalImagePath);
 
             int width = originalImage.Width;
@@ -55,6 +69,8 @@ namespace Pipdweno_Maps.Modules
             }
 
             pipImage.Save(newImagePath, ImageFormat.Bmp);
+
+            return newImagePath;
         }
     }
 }
