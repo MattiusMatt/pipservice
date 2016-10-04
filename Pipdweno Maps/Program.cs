@@ -5,7 +5,7 @@ namespace Pipdweno_Maps
 {
     class Program
     {
-        const string DOMAIN = @"http://localhost:7504";
+        const string DOMAIN = @"http://localhost:7507";
 
         static void Main(string[] args)
         {
