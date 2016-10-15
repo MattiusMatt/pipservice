@@ -37,6 +37,17 @@ namespace Pipdweno_Maps.Modules
 
                 return response;
             };
+
+            Get["/test"] = parameters => {
+                Response response;
+
+                string path = Directory.GetCurrentDirectory();
+                string imagePath = string.Format(@"{0}\test\wibble.bmp", path);
+
+                response = Response.AsImage(imagePath);
+
+                return response;
+            };
         }
 
         private static void CleanupOldFiles()
