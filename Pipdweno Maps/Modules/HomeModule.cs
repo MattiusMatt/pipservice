@@ -42,7 +42,7 @@ namespace Pipdweno_Maps.Modules
                 Response response;
 
                 string path = Directory.GetCurrentDirectory();
-                string imagePath = string.Format(@"{0}\test\wibble.bmp", path);
+                string imagePath = string.Format(@"{0}\Images\small.bmp", path);
 
                 response = Response.AsImage(imagePath);
 
