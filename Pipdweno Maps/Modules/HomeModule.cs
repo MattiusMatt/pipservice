@@ -80,10 +80,10 @@ namespace Pipdweno_Maps.Modules
 
         private string DrawPosition(string imagePath, string latitude, string longditude, string posLat, string posLong, int zoomLevel)
         {
-            int posRadius = 5;
             string path = Directory.GetCurrentDirectory();
             string fileName = Guid.NewGuid().ToString();
-            string newImagePath = string.Format(@"{0}\{1}2.bmp", path, fileName);
+            string newImagePath = string.Format(@"{0}\{1}.bmp", path, fileName);
+            string locationImagePath = string.Format(@"{0}\Images\location.bmp", path);
 
             PointF pixelDistance = LatLongDistanceInPixels(latitude, longditude, posLat, posLong, zoomLevel);
 
@@ -94,13 +94,18 @@ namespace Pipdweno_Maps.Modules
 
                 using (Graphics g = Graphics.FromImage(originalImage))
                 {
-                    using (Brush b = new SolidBrush(ColorTranslator.FromHtml("#ff00ffff")))
+                    using (Bitmap locationImage = new Bitmap(locationImagePath))
                     {
-                        float offset = posRadius / 2;
-
-                        g.FillEllipse(b, centreX - offset, centreY - offset, posRadius, posRadius);
-                        g.FillEllipse(b, (centreX - pixelDistance.X) - offset, (centreY - pixelDistance.Y) - offset, posRadius, posRadius);
+                        locationImage.MakeTransparent(Color.White);
+                        g.DrawImage(locationImage, new PointF((centreX - pixelDistance.X) - (locationImage.Width / 2), (centreY - pixelDistance.Y) - (locationImage.Height / 2)));
                     }
+
+                    /*using (Brush b = new SolidBrush(ColorTranslator.FromHtml("#ff00ffff")))
+                    {
+                        
+                        
+                        g.FillEllipse(b, (centreX - pixelDistance.X) - offset, (centreY - pixelDistance.Y) - offset, posRadius, posRadius);
+                    }*/
                 }
 
                 File.Delete(newImagePath);
