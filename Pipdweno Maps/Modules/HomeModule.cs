@@ -48,6 +48,17 @@ namespace Pipdweno_Maps.Modules
 
                 return response;
             };
+
+            Get["/localwithposition"] = parameters => {
+                Response response;
+
+                string imagePath = this.AquirePipMap(Request.Query.lat, Request.Query.lon, LOCAL_MAP_ZOOM);
+
+                imagePath = this.DrawPosition(imagePath, Request.Query.lat, Request.Query.lon, Request.Query.poslat, Request.Query.poslon, LOCAL_MAP_ZOOM);
+                response = Response.AsImage(imagePath);
+
+                return response;
+            };
         }
 
         private static void CleanupOldFiles()
@@ -65,6 +76,48 @@ namespace Pipdweno_Maps.Modules
 
                 }
             }
+        }
+
+        private string DrawPosition(string imagePath, string latitude, string longditude, string posLat, string posLong, int zoomLevel)
+        {
+            int posRadius = 5;
+            string path = Directory.GetCurrentDirectory();
+            string fileName = Guid.NewGuid().ToString();
+            string newImagePath = string.Format(@"{0}\{1}2.bmp", path, fileName);
+
+            PointF pixelDistance = LatLongDistanceInPixels(latitude, longditude, posLat, posLong, zoomLevel);
+
+            using (Bitmap originalImage = new Bitmap(imagePath))
+            {
+                int centreX = originalImage.Width / 2;
+                int centreY = originalImage.Height / 2;
+
+                using (Graphics g = Graphics.FromImage(originalImage))
+                {
+                    using (Brush b = new SolidBrush(ColorTranslator.FromHtml("#ff00ffff")))
+                    {
+                        float offset = posRadius / 2;
+
+                        g.FillEllipse(b, centreX - offset, centreY - offset, posRadius, posRadius);
+                        g.FillEllipse(b, (centreX - pixelDistance.X) - offset, (centreY - pixelDistance.Y) - offset, posRadius, posRadius);
+                    }
+                }
+
+                File.Delete(newImagePath);
+                originalImage.Save(newImagePath);
+            }
+
+            return newImagePath;
+        }
+
+        private PointF LatLongDistanceInPixels(string latitude, string longditude, string posLat, string posLong, int zoomLevel)
+        {
+            GoogleMapsAPIProjection projection = new GoogleMapsAPIProjection(zoomLevel);
+
+            PointF centre = projection.FromCoordinatesToPixel(new PointF(float.Parse(latitude), float.Parse(longditude)));
+            PointF pos = projection.FromCoordinatesToPixel(new PointF(float.Parse(posLat), float.Parse(posLong)));
+
+            return new PointF((centre.X - pos.X), (centre.Y - pos.Y));
         }
 
         private string AquirePipMap(string latitude, string longditude, int zoom)
